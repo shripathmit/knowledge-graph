@@ -1,0 +1,16 @@
+{
+  "name": "knowledge-graph",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive force-directed knowledge graph of Shridhar Pathak's career, ventures, projects, and writing.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "PORT=3000 node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

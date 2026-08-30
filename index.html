@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Knowledge graph — Shridhar Pathak</title>
+    <meta
+      name="description"
+      content="An interactive force-directed graph of Shridhar Pathak's career, ventures, kReative Labs projects, and writing, and how they connect."
+    />
+    <link rel="canonical" href="https://knowledge-graph-production.up.railway.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Knowledge graph — Shridhar Pathak" />
+    <meta
+      property="og:description"
+      content="Career, ventures, kReative Labs projects, and writing, rendered as one connected graph instead of a resume."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+      :root {
+        --bg: #0b0c0e;
+        --panel: rgba(20, 22, 26, 0.92);
+        --ink: #e7e9ec;
+        --muted: #8b94a1;
+        --line: rgba(255, 255, 255, 0.08);
+        --accent: #0f6f5c;
+
+        --c-education: #7d9fd3;
+        --c-role: #2fbf9a;
+        --c-venture: #d8a83c;
+        --c-project: #e8639a;
+        --c-writing: #5ec8e0;
+        --c-skill: #9b7fe8;
+
+        --e-progression: #2fbf9a;
+        --e-informs: #e8639a;
+        --e-built_on: #d8a83c;
+        --e-related: #5b6472;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+        overflow: hidden;
+      }
+
+      #graph {
+        position: fixed;
+        inset: 0;
+        display: block;
+        cursor: grab;
+      }
+      #graph:active { cursor: grabbing; }
+
+      header.kg-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.9rem 1.1rem;
+        background: linear-gradient(180deg, rgba(11, 12, 14, 0.92), rgba(11, 12, 14, 0));
+        pointer-events: none;
+      }
+      header.kg-bar a,
+      header.kg-bar button {
+        pointer-events: auto;
+      }
+      .kg-back {
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 0.8125rem;
+        color: var(--muted);
+        text-decoration: none;
+      }
+      .kg-back:hover { color: var(--ink); }
+      .kg-title {
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 0.8125rem;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+      }
+      .kg-title strong { color: var(--ink); font-weight: 500; }
+
+      .kg-reset {
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 0.75rem;
+        color: var(--muted);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.35rem 0.8rem;
+        cursor: pointer;
+      }
+      .kg-reset:hover { color: var(--ink); border-color: rgba(255,255,255,0.2); }
+
+      .kg-panel {
+        position: fixed;
+        left: 1.1rem;
+        bottom: 1.1rem;
+        z-index: 10;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+        font-size: 0.75rem;
+        line-height: 1.6;
+        max-width: 15rem;
+        backdrop-filter: blur(6px);
+      }
+      .kg-panel__label {
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 0.6875rem;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin: 0 0 0.4rem;
+        text-transform: uppercase;
+      }
+      .kg-legend-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.2rem 0;
+      }
+      .kg-swatch-line {
+        width: 18px;
+        height: 2px;
+        flex: none;
+      }
+      .kg-swatch-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex: none;
+      }
+      .kg-legend-sep {
+        border: none;
+        border-top: 1px solid var(--line);
+        margin: 0.6rem 0;
+      }
+
+      .kg-tooltip {
+        position: fixed;
+        z-index: 20;
+        pointer-events: none;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 0.55rem 0.75rem;
+        font-size: 0.75rem;
+        line-height: 1.5;
+        max-width: 20rem;
+        opacity: 0;
+        transition: opacity 0.1s ease;
+        backdrop-filter: blur(6px);
+      }
+      .kg-tooltip__title {
+        font-weight: 600;
+        color: var(--ink);
+        margin: 0 0 0.15rem;
+      }
+      .kg-tooltip__meta {
+        color: var(--muted);
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 0.6875rem;
+      }
+      .kg-tooltip__reason {
+        color: var(--ink);
+        margin-top: 0.35rem;
+      }
+
+      .kg-hint {
+        position: fixed;
+        right: 1.1rem;
+        bottom: 1.1rem;
+        z-index: 10;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 0.6875rem;
+        color: var(--muted);
+        text-align: right;
+        line-height: 1.6;
+      }
+
+      .node-label {
+        fill: var(--muted);
+        font-family: "Inter", sans-serif;
+        font-size: 10px;
+        pointer-events: none;
+        paint-order: stroke;
+        stroke: var(--bg);
+        stroke-width: 3px;
+        stroke-linejoin: round;
+      }
+      .node-label.is-emph { fill: var(--ink); font-weight: 600; }
+
+      @media (max-width: 640px) {
+        .kg-panel { max-width: calc(100vw - 2.2rem); }
+        .kg-hint { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="kg-bar">
+      <a class="kg-back" href="https://www.shridharpathak.me/klabs/" >&larr; kReative Labs</a>
+      <span class="kg-title">Knowledge graph &middot; <strong>Shridhar Pathak</strong></span>
+      <button class="kg-reset" id="kg-reset" type="button">Reset view</button>
+    </header>
+
+    <svg id="graph"></svg>
+
+    <div class="kg-panel" aria-label="Legend">
+      <p class="kg-panel__label">Relationships</p>
+      <div class="kg-legend-row"><span class="kg-swatch-line" style="background:var(--e-progression)"></span>progression</div>
+      <div class="kg-legend-row"><span class="kg-swatch-line" style="background:var(--e-informs)"></span>informs</div>
+      <div class="kg-legend-row"><span class="kg-swatch-line" style="background:var(--e-built_on)"></span>built on</div>
+      <div class="kg-legend-row"><span class="kg-swatch-line" style="background:var(--e-related)"></span>related</div>
+      <hr class="kg-legend-sep" />
+      <p class="kg-panel__label">Nodes</p>
+      <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-education)"></span>education</div>
+      <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-role)"></span>career</div>
+      <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-venture)"></span>venture / advisory</div>
+      <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-project)"></span>kReative Labs project</div>
+      <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-writing)"></span>writing</div>
+      <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-skill)"></span>theme / skill</div>
+    </div>
+
+    <p class="kg-hint">Drag to explore &middot; scroll to zoom &middot; hover a node<br />click a node to open it on the site</p>
+
+    <div class="kg-tooltip" id="kg-tooltip"></div>
+
+    <script src="data.js"></script>
+    <script>
+      const SITE_BASE = "https://www.shridharpathak.me";
+      const nodeColor = {
+        education: "var(--c-education)",
+        role: "var(--c-role)",
+        venture: "var(--c-venture)",
+        project: "var(--c-project)",
+        writing: "var(--c-writing)",
+        skill: "var(--c-skill)",
+      };
+      const edgeColor = {
+        progression: "var(--e-progression)",
+        informs: "var(--e-informs)",
+        built_on: "var(--e-built_on)",
+        related: "var(--e-related)",
+      };
+
+      const nodes = GRAPH_DATA.nodes.map((d) => ({ ...d }));
+      const nodeById = new Map(nodes.map((n) => [n.id, n]));
+      const links = GRAPH_DATA.links.map((d) => ({ ...d }));
+
+      const neighborMap = new Map(nodes.map((n) => [n.id, new Set()]));
+      const linksByNode = new Map(nodes.map((n) => [n.id, []]));
+      links.forEach((l) => {
+        neighborMap.get(l.source)?.add(l.target);
+        neighborMap.get(l.target)?.add(l.source);
+        linksByNode.get(l.source)?.push(l);
+        linksByNode.get(l.target)?.push(l);
+      });
+
+      const svg = d3.select("#graph");
+      const tooltip = document.getElementById("kg-tooltip");
+
+      function resize() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        svg.attr("width", w).attr("height", h).attr("viewBox", [0, 0, w, h]);
+        return { w, h };
+      }
+      let { w, h } = resize();
+
+      const root = svg.append("g");
+
+      const zoom = d3
+        .zoom()
+        .scaleExtent([0.25, 4])
+        .on("zoom", (event) => root.attr("transform", event.transform));
+      svg.call(zoom);
+
+      const linkSel = root
+        .append("g")
+        .attr("stroke-opacity", 0.55)
+        .selectAll("line")
+        .data(links)
+        .join("line")
+        .attr("stroke", (d) => edgeColor[d.type] || edgeColor.related)
+        .attr("stroke-width", (d) => (d.type === "progression" ? 1.6 : 1));
+
+      const degree = new Map(nodes.map((n) => [n.id, 0]));
+      links.forEach((l) => {
+        degree.set(l.source, (degree.get(l.source) || 0) + 1);
+        degree.set(l.target, (degree.get(l.target) || 0) + 1);
+      });
+
+      const nodeSel = root
+        .append("g")
+        .selectAll("circle")
+        .data(nodes)
+        .join("circle")
+        .attr("r", (d) => 4 + Math.min(8, (degree.get(d.id) || 0) * 1.1))
+        .attr("fill", (d) => nodeColor[d.type] || "#888")
+        .attr("stroke", "#0b0c0e")
+        .attr("stroke-width", 1.5)
+        .style("cursor", (d) => (d.url ? "pointer" : "default"))
+        .call(drag());
+
+      const labelSel = root
+        .append("g")
+        .selectAll("text")
+        .data(nodes)
+        .join("text")
+        .attr("class", (d) => "node-label" + ((degree.get(d.id) || 0) >= 4 ? " is-emph" : ""))
+        .attr("dx", 9)
+        .attr("dy", 3)
+        .text((d) => d.title);
+
+      const simulation = d3
+        .forceSimulation(nodes)
+        .force(
+          "link",
+          d3
+            .forceLink(links)
+            .id((d) => d.id)
+            .distance((d) => (d.type === "progression" ? 70 : 110))
+            .strength(0.35)
+        )
+        .force("charge", d3.forceManyBody().strength(-190))
+        .force("center", d3.forceCenter(w / 2, h / 2))
+        .force("collide", d3.forceCollide().radius(26))
+        .on("tick", ticked);
+
+      function ticked() {
+        linkSel
+          .attr("x1", (d) => d.source.x)
+          .attr("y1", (d) => d.source.y)
+          .attr("x2", (d) => d.target.x)
+          .attr("y2", (d) => d.target.y);
+        nodeSel.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+        labelSel.attr("x", (d) => d.x).attr("y", (d) => d.y);
+      }
+
+      function drag() {
+        function started(event, d) {
+          if (!event.active) simulation.alphaTarget(0.25).restart();
+          d.fx = d.x;
+          d.fy = d.y;
+        }
+        function dragged(event, d) {
+          d.fx = event.x;
+          d.fy = event.y;
+        }
+        function ended(event, d) {
+          if (!event.active) simulation.alphaTarget(0);
+          d.fx = null;
+          d.fy = null;
+        }
+        return d3.drag().on("start", started).on("drag", dragged).on("end", ended);
+      }
+
+      function showTooltip(x, y, html) {
+        tooltip.innerHTML = html;
+        tooltip.style.opacity = "1";
+        const pad = 14;
+        let left = x + pad;
+        let top = y + pad;
+        if (left + 320 > window.innerWidth) left = x - 320 - pad;
+        if (top + 140 > window.innerHeight) top = y - 140 - pad;
+        tooltip.style.left = left + "px";
+        tooltip.style.top = top + "px";
+      }
+      function hideTooltip() {
+        tooltip.style.opacity = "0";
+      }
+
+      function focusNode(d) {
+        const keep = neighborMap.get(d.id) || new Set();
+        nodeSel.attr("opacity", (n) => (n.id === d.id || keep.has(n.id) ? 1 : 0.15));
+        labelSel.attr("opacity", (n) => (n.id === d.id || keep.has(n.id) ? 1 : 0.12));
+        linkSel.attr("stroke-opacity", (l) => (l.source.id === d.id || l.target.id === d.id ? 0.95 : 0.06));
+      }
+      function clearFocus() {
+        nodeSel.attr("opacity", 1);
+        labelSel.attr("opacity", 1);
+        linkSel.attr("stroke-opacity", 0.55);
+      }
+
+      nodeSel
+        .on("mouseenter", (event, d) => {
+          focusNode(d);
+          const meta = [d.type.replace("_", " "), d.date].filter(Boolean).join(" &middot; ");
+          showTooltip(
+            event.clientX,
+            event.clientY,
+            `<p class="kg-tooltip__title">${d.title}</p><p class="kg-tooltip__meta">${meta}</p>`
+          );
+        })
+        .on("mousemove", (event) => {
+          const r = tooltip.getBoundingClientRect();
+          showTooltip(event.clientX, event.clientY, tooltip.innerHTML);
+        })
+        .on("mouseleave", () => {
+          clearFocus();
+          hideTooltip();
+        })
+        .on("click", (event, d) => {
+          if (d.url) window.open(SITE_BASE + d.url, "_blank", "noopener,noreferrer");
+        });
+
+      linkSel
+        .on("mouseenter", (event, d) => {
+          const s = typeof d.source === "object" ? d.source : nodeById.get(d.source);
+          const t = typeof d.target === "object" ? d.target : nodeById.get(d.target);
+          linkSel.attr("stroke-opacity", (l) => (l === d ? 1 : 0.06));
+          nodeSel.attr("opacity", (n) => (n.id === s.id || n.id === t.id ? 1 : 0.15));
+          labelSel.attr("opacity", (n) => (n.id === s.id || n.id === t.id ? 1 : 0.12));
+          showTooltip(
+            event.clientX,
+            event.clientY,
+            `<p class="kg-tooltip__title">${s.title} &rarr; ${t.title}</p><p class="kg-tooltip__meta">${d.type.replace("_", " ")}</p><p class="kg-tooltip__reason">${d.reason}</p>`
+          );
+        })
+        .on("mousemove", (event) => showTooltip(event.clientX, event.clientY, tooltip.innerHTML))
+        .on("mouseleave", () => {
+          clearFocus();
+          hideTooltip();
+        });
+
+      document.getElementById("kg-reset").addEventListener("click", () => {
+        svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
+        simulation.alpha(0.6).restart();
+      });
+
+      window.addEventListener("resize", () => {
+        const dims = resize();
+        w = dims.w;
+        h = dims.h;
+        simulation.force("center", d3.forceCenter(w / 2, h / 2));
+        simulation.alpha(0.3).restart();
+      });
+    </script>
+  </body>
+</html>
