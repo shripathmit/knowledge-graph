@@ -15,8 +15,8 @@ const GRAPH_DATA = {
     // Career
     { id: "amzn-register", title: "SDE — Amazon Register (POS)", type: "role", date: "2012–2016", url: "/human#experience" },
     { id: "amzn-retail", title: "Manager & Tech Lead — Amazon Retail", type: "role", date: "2016–2018", url: "/human#experience" },
-    { id: "amzn-alexa-india", title: "Senior TPM, Alexa India — Amazon Alexa", type: "role", date: "2018–2020", url: "/human#experience" },
-    { id: "amzn-alexa-principal", title: "Principal TPM — Amazon Alexa", type: "role", date: "2020–2022", url: "/human#experience" },
+    { id: "amzn-alexa-india", title: "Senior TPM, Alexa India — Amazon, Bengaluru", type: "role", date: "2019–2020", url: "/human#experience" },
+    { id: "amzn-alexa-principal", title: "Principal TPM — Amazon Alexa", type: "role", date: "2021–2022", url: "/human#experience" },
     { id: "amzn-alexa-sr-mgr", title: "Senior Manager & Tech Lead — Amazon Alexa", type: "role", date: "2022–2023", url: "/human#experience" },
     { id: "moderna", title: "Senior Director, AI & ML — Moderna", type: "role", date: "2023–present", url: "/human#experience" },
 
@@ -57,7 +57,7 @@ const GRAPH_DATA = {
     { source: "tifr", target: "utd", type: "progression", reason: "Left the GRAPES-3 detector work at TIFR to start the M.S. in distributed systems and ML at UT Dallas." },
     { source: "utd", target: "amzn-register", type: "progression", reason: "Joined Amazon Register the month after finishing the UT Dallas master's." },
     { source: "amzn-register", target: "amzn-retail", type: "progression", reason: "Moved from Register's payments infrastructure into Amazon Retail's Southeast Asia launch." },
-    { source: "amzn-retail", target: "amzn-alexa-india", type: "progression", reason: "Retail scope overlapped roughly seven months with the start of the Alexa India founding role." },
+    { source: "amzn-retail", target: "amzn-alexa-india", type: "progression", reason: "Moved from Amazon Retail in Seattle to found the Alexa India team in Bengaluru immediately after Retail's Southeast Asia launch wrapped." },
     { source: "amzn-alexa-india", target: "amzn-alexa-principal", type: "progression", reason: "Grew the Alexa India team from scratch, then stepped up to Principal TPM for the multi-agent rollout." },
     { source: "amzn-alexa-principal", target: "amzn-alexa-sr-mgr", type: "progression", reason: "Voice Shopping rollout across ten countries led into the Senior Manager & Tech Lead role over conversational AI." },
     { source: "amzn-alexa-sr-mgr", target: "moderna", type: "progression", reason: "Left Alexa's multi-agent conversational framework to lead AI & ML at Moderna." },
