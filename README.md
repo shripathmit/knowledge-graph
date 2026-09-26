@@ -14,9 +14,11 @@ Every node and edge traces back to something already public on
 `/klabs/` project pages, and `/blog.html`. Nothing here is invented for the
 graph; it is a different lens on the same facts.
 
-- **Nodes** are colored by category: education, career, venture/advisory,
-  kReative Labs project, writing, or a recurring theme/skill.
-- **Edges** are typed and reasoned: `progression` (chronological), `informs`
+- **Nodes** are colored by category: education, career, impact (what a role
+  delivered), venture/advisory, kReative Labs project, writing, recognition,
+  or a recurring theme/skill.
+- **Edges** are typed and reasoned: `progression` (chronological),
+  `delivered` (a role produced a specific outcome), `informs`
   (an experience shaped a later thing), `built_on` (a project literally uses
   or extends another), `related` (a looser thematic link). Hovering an edge
   shows the specific reason for the connection.
@@ -40,6 +42,7 @@ npm run dev   # http://localhost:3000
 ## Updating the graph
 
 Edit `data.js` directly. Each node needs `id`, `title`, `type`, and an
-optional `date` and `url` (site-relative, e.g. `/klabs/nanda-demo`). Each
-link needs `source`, `target`, a `type` from the four above, and a `reason`
+optional `date`, `url` (site-relative, e.g. `/klabs/nanda-demo`), and
+`summary` (one line, shown on hover). Each
+link needs `source`, `target`, a `type` from the five above, and a `reason`
 string explaining the connection in one sentence.

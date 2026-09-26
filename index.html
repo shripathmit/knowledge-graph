@@ -37,10 +37,13 @@
         --c-project: #e8639a;
         --c-writing: #5ec8e0;
         --c-skill: #9b7fe8;
+        --c-impact: #8fd14f;
+        --c-recognition: #c9c2b0;
 
         --e-progression: #2fbf9a;
         --e-informs: #e8639a;
         --e-built_on: #d8a83c;
+        --e-delivered: #8fd14f;
         --e-related: #5b6472;
       }
 
@@ -225,6 +228,7 @@
     <div class="kg-panel" aria-label="Legend">
       <p class="kg-panel__label">Relationships</p>
       <div class="kg-legend-row"><span class="kg-swatch-line" style="background:var(--e-progression)"></span>progression</div>
+      <div class="kg-legend-row"><span class="kg-swatch-line" style="background:var(--e-delivered)"></span>delivered</div>
       <div class="kg-legend-row"><span class="kg-swatch-line" style="background:var(--e-informs)"></span>informs</div>
       <div class="kg-legend-row"><span class="kg-swatch-line" style="background:var(--e-built_on)"></span>built on</div>
       <div class="kg-legend-row"><span class="kg-swatch-line" style="background:var(--e-related)"></span>related</div>
@@ -232,10 +236,12 @@
       <p class="kg-panel__label">Nodes</p>
       <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-education)"></span>education</div>
       <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-role)"></span>career</div>
+      <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-impact)"></span>impact</div>
       <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-venture)"></span>venture / advisory</div>
       <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-project)"></span>kReative Labs project</div>
       <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-writing)"></span>writing</div>
       <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-skill)"></span>theme / skill</div>
+      <div class="kg-legend-row"><span class="kg-swatch-dot" style="background:var(--c-recognition)"></span>recognition</div>
     </div>
 
     <p class="kg-hint">Drag to explore &middot; scroll to zoom &middot; hover a node<br />click a node to open it on the site</p>
@@ -248,13 +254,16 @@
       const nodeColor = {
         education: "var(--c-education)",
         role: "var(--c-role)",
+        impact: "var(--c-impact)",
         venture: "var(--c-venture)",
         project: "var(--c-project)",
         writing: "var(--c-writing)",
         skill: "var(--c-skill)",
+        recognition: "var(--c-recognition)",
       };
       const edgeColor = {
         progression: "var(--e-progression)",
+        delivered: "var(--e-delivered)",
         informs: "var(--e-informs)",
         built_on: "var(--e-built_on)",
         related: "var(--e-related)",
@@ -406,7 +415,8 @@
           showTooltip(
             event.clientX,
             event.clientY,
-            `<p class="kg-tooltip__title">${d.title}</p><p class="kg-tooltip__meta">${meta}</p>`
+            `<p class="kg-tooltip__title">${d.title}</p><p class="kg-tooltip__meta">${meta}</p>` +
+              (d.summary ? `<p class="kg-tooltip__reason">${d.summary}</p>` : "")
           );
         })
         .on("mousemove", (event) => {
